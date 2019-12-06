@@ -55,35 +55,51 @@ function! clap#helper#echo_error(msg) abort
   echohl NONE
 endfunction
 
+function! s:run_term(cmd, succ_info) abort
+  10new belowright bottom
+  setlocal buftype=nofile winfixheight norelativenumber nonumber bufhidden=wipe
+
+  function! s:OnExit(status) closure
+    if a:status == 0
+      execute 'silent! bd! '.bufnr
+      call clap#helper#echo_info(a:succ_info)
+    endif
+  endfunction
+
+  if has('nvim')
+    call termopen(a:cmd, {
+          \ 'cwd': fnamemodify(g:clap#autoload_dir, ':h'),
+          \ 'on_exit': {job, status -> s:OnExit(status)},
+          \})
+  else
+    call term_start(a:cmd, {
+          \ 'curwin': 1,
+          \ 'cwd': fnamemodify(g:clap#autoload_dir, ':h'),
+          \ 'exit_cb': {job, status -> s:OnExit(status)},
+          \})
+  endif
+
+  let bufnr = bufnr('')
+
+  wincmd p
+endfunction
+
+let s:mac = 'dylib'
+let s:linux = 'so'
+
+function! clap#helper#build_rust_ext() abort
+  if executable('cargo')
+    let cmd = 'cd pythonx/clap/pyext-myrustlib '
+          \ .'&& cargo build --release '
+          \ .'&& cp target/release/libmyrustlib.dylib '.fnamemodify(g:clap#autoload_dir, ':h').'/pythonx/clap/myrustlib.so'
+    call s:run_term(cmd, 'build rust extension successfully')
+  endif
+endfunction
+
 function! clap#helper#build_maple() abort
   if executable('cargo')
     let cmd = 'cargo build --release'
-    10new belowright bottom
-    setlocal buftype=nofile winfixheight norelativenumber nonumber bufhidden=wipe
-
-    function! s:OnExit(status) closure
-      if a:status == 0
-        execute 'silent! bd! '.bufnr
-        call clap#helper#echo_info('build maple successfully')
-      endif
-    endfunction
-
-    if has('nvim')
-      call termopen(cmd, {
-            \ 'cwd': fnamemodify(g:clap#autoload_dir, ':h'),
-            \ 'on_exit': {job, status -> s:OnExit(status)},
-            \})
-    else
-      call term_start(cmd, {
-            \ 'curwin': 1,
-            \ 'cwd': fnamemodify(g:clap#autoload_dir, ':h'),
-            \ 'exit_cb': {job, status -> s:OnExit(status)},
-            \})
-    endif
-
-    let bufnr = bufnr('')
-
-    wincmd p
+    call s:run_term(cmd, 'build maple successfully')
   else
     call clap#helper#echo_error('Can not build maple in that cargo is not found.')
   endif

@@ -6,7 +6,7 @@ import random
 import re
 import string
 
-import myrustlib
+import fuzzyrustlib
 from fzy_impl import fzy_scorer
 
 
@@ -30,15 +30,16 @@ def fuzzy_match_py(query, candidates):
 
 
 query = 'sr'
-candidates = open('/home/xlc/files.txt', 'r').read().split('\n')[:100]
+candidates = open('/Users/xlc/files.txt', 'r').read().split('\n')[:100]
 
 print(fuzzy_match_py(query, candidates))
-print(myrustlib.fuzzy_match(query, candidates))
+for m in dir(fuzzyrustlib):
+    print(getattr(fuzzyrustlib, m))
+print(dir(fuzzyrustlib))
+print(fuzzyrustlib.fuzzy_match(query, candidates))
 
+#  def test_pure_python(benchmark):
+#  print(benchmark(fuzzy_match_py, query, candidates))
 
-def test_pure_python(benchmark):
-    print(benchmark(fuzzy_match_py, query, candidates))
-
-
-def test_rust(benchmark):
-    print(benchmark(myrustlib.fuzzy_match, query, candidates))
+#  def test_rust(benchmark):
+#  print(benchmark(fuzzyrustlib.fuzzy_match, query, candidates))
