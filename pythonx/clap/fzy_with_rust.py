@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import vim
+import itertools
+import random
+import re
+import string
 
-from .fzy_impl import fzy_scorer
-from .myrustlib import fuzzy_match
+import myrustlib
+from fzy_impl import fzy_scorer
 
 
 def fuzzy_match_py(query, candidates):
@@ -26,10 +29,16 @@ def fuzzy_match_py(query, candidates):
     return (indices, filtered)
 
 
-def clap_fzy():
-    #  query = vim.eval("a:query")
-    #  candidates = vim.eval("a:candidates")
-    #  print(query)
-    #  return fuzzy_match(query, candidates)
-    #  return fuzzy_match(vim.eval("a:query"), vim.eval("a:candidates"))
-    return fuzzy_match_py(vim.eval("a:query"), vim.eval("a:candidates"))
+query = 'sr'
+candidates = open('/home/xlc/files.txt', 'r').read().split('\n')[:100]
+
+print(fuzzy_match_py(query, candidates))
+print(myrustlib.fuzzy_match(query, candidates))
+
+
+def test_pure_python(benchmark):
+    print(benchmark(fuzzy_match_py, query, candidates))
+
+
+def test_rust(benchmark):
+    print(benchmark(myrustlib.fuzzy_match, query, candidates))
